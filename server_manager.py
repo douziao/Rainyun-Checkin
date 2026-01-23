@@ -60,6 +60,18 @@ class ServerManager:
             logger.error("配置错误：RENEW_THRESHOLD_DAYS 必须是整数，使用默认值 7")
             self.renew_threshold = 7
 
+        # 白名单模式：只续费指定的产品ID（逗号分隔，为空则续费所有）
+        renew_ids_str = os.environ.get("RENEW_PRODUCT_IDS", "").strip()
+        if renew_ids_str:
+            try:
+                self.renew_product_ids = [int(x.strip()) for x in renew_ids_str.split(",") if x.strip()]
+                logger.info(f"白名单模式：只续费产品 {self.renew_product_ids}")
+            except ValueError:
+                logger.error("配置错误：RENEW_PRODUCT_IDS 格式无效，应为逗号分隔的数字")
+                self.renew_product_ids = []
+        else:
+            self.renew_product_ids = []  # 空列表表示续费所有
+
     def get_all_servers(self) -> list:
         """
         获取所有服务器信息
@@ -140,7 +152,11 @@ class ServerManager:
                 if server.days_remaining <= self.renew_threshold:
                     logger.warning(f"⚠️ {server.name} 即将到期！剩余 {server.days_remaining} 天")
 
-                    if self.auto_renew:
+                    # 白名单检查：如果设置了白名单，只续费白名单内的产品
+                    if self.renew_product_ids and server.id not in self.renew_product_ids:
+                        logger.info(f"  ↳ 跳过：不在白名单中 (ID: {server.id})")
+                        result["warnings"].append(f"{server.name} 即将到期，但不在续费白名单中")
+                    elif self.auto_renew:
                         # 检查积分是否足够
                         if result["points"] >= RENEW_COST_7_DAYS:
                             try:

@@ -51,10 +51,13 @@ docker-compose up --build
 | RAINYUN_API_KEY | ❌ | - | 雨云 API 密钥 |
 | AUTO_RENEW | ❌ | true | 自动续费开关 |
 | RENEW_THRESHOLD_DAYS | ❌ | 7 | 续费触发阈值(天) |
+| RENEW_PRODUCT_IDS | ❌ | - | 续费白名单(逗号分隔产品ID) |
 
 > 💡 **获取 API 密钥**：雨云后台 → 用户中心 → API 密钥
 >
 > 💰 **续费成本**：7天 = 2258 积分，签到每天 500 积分
+>
+> 🎯 **白名单模式**：设置 `RENEW_PRODUCT_IDS` 后只续费指定产品，留空则续费所有
 
 ## 定时任务
 
